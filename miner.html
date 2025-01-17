@@ -1,0 +1,58 @@
+<html>
+    <body>
+        <h1>Mining</h1>
+        <p id="inputs"></p>
+        <p id="output"></p>
+        <p id="status"></p>
+        <select id="difficulty">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <button id="mine">Mine</button>
+        <button id="stop">Stop</button>
+    </body>
+    <script type="module">
+        import init, {mine, hash} from './pkg/mining_poc.js';
+        let bail = false;
+        let mining = false;
+        init();
+
+        // mine until result is reached
+        // warning: this is a blocking operation
+        export function mineTillResult() {
+            let start = Date.now();
+            mining = true;
+            let timestamp = Date.now();
+            bail = false;
+            while (true) {
+                document.getElementById("status").innerText = 'Mining...';
+                setTimeout(() => {}, 0);
+                let difficulty = parseInt(document.getElementById("difficulty").value);
+                let result = mine(BigInt(timestamp), difficulty, 10_000);
+
+                if (result || bail) {
+                    let winning = hash(result);
+                    document.getElementById("inputs").innerText = (result) ?
+                        result.ts + ':' + result.nonce + ':' + result.difficulty : 'bailed early';
+                    document.getElementById("output").innerText = (result) ? winning : 'bailed early';
+                    break;
+                }
+                timestamp = Date.now();
+            }
+            document.getElementById("status").innerText = 'Done in ' + (Date.now() - start) / 1000 + 's';
+            mining = false;
+        }
+
+        function stop() {
+            document.getElementById("status").innerText = 'Stopping...';
+            bail = true;
+        }
+        document.getElementById('mine').addEventListener('click', mineTillResult);
+        document.getElementById('stop').addEventListener('click', stop);
+
+
+    </script>
+</html>
